@@ -85,8 +85,8 @@
 
                         <p class="nueva-clausula"><u><strong>PRIMERO. -</strong></u> Las partes vienen en sustituir las siguientes cláusulas del contrato de trabajo, las que a continuación se detallan:</p>
 
-                        <div id="contenedor-clausula-cuarta">
-                            <p class="nueva-clausula" style="margin-bottom: 5px;"><u><strong>CUARTO. - DE LAS REMUNERACIONES:</strong></u> El empleador se compromete a remunerar al trabajador mensualmente en la forma que se indica:</p>
+                        <div id="contenedor-clausula-cuarta" style="margin-left: 40px;">
+                            <p class="nueva-clausula sin-sangria" style="margin-bottom: 5px;"><u><strong>CUARTO. - DE LAS REMUNERACIONES:</strong></u> El empleador se compromete a remunerar al trabajador mensualmente en la forma que se indica:</p>
                             <ol type="a">
                                 <li style="margin-top: 0; margin-bottom: 0;">Sueldo Base Mensual <strong><span class="variable" id="dato-sb-indefinido">[SBIndefinido]</span></strong> .- (proporcional a los días trabajados en el mes)</li>
                                 <li style="margin-top: 0; margin-bottom: 0;">La Gratificación legal mensual corresponderá al 25% de la Remuneración base con un tope según el Art. 50 del Código del Trabajo correspondiente a 4,75 ingresos mínimos mensuales.</li>
@@ -95,7 +95,7 @@
                             </ol>
                         </div>
 
-                        <p class="nueva-clausula" id="contenedor-clausula-sexta"><u><strong>SEXTO. - DE LA VIGENCIA:</strong></u> El presente contrato tendrá una duración hasta el día <strong><span class="variable" id="dato-termino-anexo1">[TerminoAnexo1]</span></strong>.</p>
+                        <p class="nueva-clausula sin-sangria" id="contenedor-clausula-sexta" style="margin-left: 40px;"><u><strong>SEXTO. - DE LA VIGENCIA:</strong></u> El presente contrato tendrá una duración hasta el día <strong><span class="variable" id="dato-termino-anexo1">[TerminoAnexo1]</span></strong>.</p>
 
                         <p class="nueva-clausula"><u><strong>SEGUNDO. -</strong></u> Se deja constancia que lo estipulado en el presente anexo de contrato, sustituye y deja sin efecto todo anexo de contrato anterior.</p>
 
@@ -335,7 +335,6 @@
                 const rutRaw = buscarPropiedad(datos, "rut") || "";
                 
                 const centroCosto = buscarPropiedad(datos, "centrocosto") || "[Centro de Costo]";
-                const inicioContratoRaw = buscarPropiedad(datos, "iniciocontrato") || buscarPropiedad(datos, "inicio_contrato") || "[Inicio Contrato]";
                 const terminoContratoRaw = buscarPropiedad(datos, "terminocontrato") || buscarPropiedad(datos, "termino_contrato") || "[Término Contrato]";
                 const terminoAnexo1Raw = buscarPropiedad(datos, "terminoanexo1") || buscarPropiedad(datos, "termino_anexo1") || "[TerminoAnexo1]";
                 
@@ -364,6 +363,7 @@
 
                 // Cálculo de la fecha de Introducción y Tercero según si es Indefinido o no
                 let inicioAnexoFormat = "";
+                let fechaParaTitulo = null;
                 
                 if (esIndefinido) {
                     inicioAnexoFormat = "[TerminoAnexo1 + 1 DÍA]";
@@ -373,6 +373,7 @@
                             fechaTerminoAnexoObj.setDate(fechaTerminoAnexoObj.getDate() + 1); // Se suma 1 día a TerminoAnexo1
                             let opciones = { day: 'numeric', month: 'long', year: 'numeric' };
                             inicioAnexoFormat = fechaTerminoAnexoObj.toLocaleDateString('es-ES', opciones).replace(',', '');
+                            fechaParaTitulo = fechaTerminoAnexoObj; // Guardar para el titulo del PDF
                         }
                     }
                 } else {
@@ -383,6 +384,7 @@
                             fechaTerminoObj.setDate(fechaTerminoObj.getDate() + 1); // Se suma 1 día a TerminoContrato
                             let opciones = { day: 'numeric', month: 'long', year: 'numeric' };
                             inicioAnexoFormat = fechaTerminoObj.toLocaleDateString('es-ES', opciones).replace(',', '');
+                            fechaParaTitulo = fechaTerminoObj; // Guardar para el titulo del PDF
                         }
                     }
                 }
@@ -431,14 +433,14 @@
                     }
                 }
                 
-                // Nombre del archivo de impresión
+                // Nombre del archivo de impresión basado en la fecha de Introducción
                 let primerNombre = nombres.trim().split(" ")[0];
                 let fechaPuntos = "";
-                const fechaObj = obtenerFechaObjeto(inicioContratoRaw);
-                if (fechaObj) {
-                    let dia = String(fechaObj.getDate()).padStart(2, '0');
-                    let mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
-                    let anio = fechaObj.getFullYear();
+                
+                if (fechaParaTitulo) {
+                    let dia = String(fechaParaTitulo.getDate()).padStart(2, '0');
+                    let mes = String(fechaParaTitulo.getMonth() + 1).padStart(2, '0');
+                    let anio = fechaParaTitulo.getFullYear();
                     fechaPuntos = `${dia}.${mes}.${anio}`;
                 }
                 
