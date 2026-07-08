@@ -22,8 +22,8 @@
         tfoot { display: table-footer-group; }
         
         /* Ajuste del tamaño del logo */
-        .encabezado-repetido { text-align: left; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #ddd; height: 80px; }
-        .logo-empresa { max-height: 80px; width: auto; }
+        .encabezado-repetido { text-align: left; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #ddd; height: 60px; }
+        .logo-empresa { max-height: 60px; width: auto; }
         
         /* Ajuste base del pie de página */
         .pie-pagina-contenido { text-align: center; font-weight: bold; font-size: 10pt; color: #555; padding-top: 15px; width: 100%; }
@@ -190,7 +190,7 @@
                                 </div>
 
                                 <strong>4. Fórmula de cálculo</strong><br>
-                                La comisión se calcula sobre el 100% de las ventas totales, multiplicando por los tres factores definidos: (%Base por meta, % por activities y % por clientes nuevos).<br><br>
+                                La comisión se calcula sobre el 100% de las ventas totales, multiplicando por los tres factores definidos: (%Base por meta, % por actividades y % por clientes nuevos).<br><br>
 
                                 <strong>5. Política de Pago</strong><br>
                                 Las comisiones se pagan con 1 mes de desfase (ejemplo: ventas de enero &rarr; pago en febrero).<br><br>
@@ -493,7 +493,7 @@
                 if (!isNaN(fechaGenerada.getTime())) {
                     let opciones = { day: 'numeric', month: 'long', year: 'numeric' };
                     if (incluirDiaSemana) opciones.weekday = 'long';
-                    return fechaGenerada.toLocaleDateString('es-ES', options).replace(',', '');
+                    return fechaGenerada.toLocaleDateString('es-ES', opciones).replace(',', '');
                 }
             }
             return fechaStr; 
