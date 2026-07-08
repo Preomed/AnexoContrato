@@ -96,10 +96,12 @@
             <option value="plazo_fijo_sueldo">Plazo Fijo + Sueldo</option>
             <option value="plazo_fijo_cargo">Plazo Fijo + Cargo</option>
             <option value="plazo_fijo_sueldo_cargo">Plazo Fijo + Sueldo + Cargo</option>
+            <option value="plazo_fijo_sueldo_horario">Plazo Fijo + Sueldo + Horario</option>
             <option value="indefinido">Indefinido</option>
             <option value="indefinido_sueldo">Indefinido + Sueldo</option>
             <option value="indefinido_cargo">Indefinido + Cargo</option>
             <option value="indefinido_sueldo_cargo">Indefinido + Sueldo + Cargo</option>
+            <option value="indefinido_sueldo_horario">Indefinido + Sueldo + Horario</option>
             <option value="cargo">Cargo</option>
             <option value="sueldo">Sueldo</option>
             <option value="cargo_sueldo">Cargo + Sueldo</option>
@@ -252,7 +254,8 @@
     </div>
 
     <script>
-        const urlGoogleSheet = "https://docs.google.com/spreadsheets/d/1UIk1P8EAdyhJLOQKQ5pV7ldTj8aLeibxldRuvEW-Qdo/export?format=csv"; 
+        // Enlace de Google Sheet con &v=2 para evadir caché
+        const urlGoogleSheet = "https://docs.google.com/spreadsheets/d/1UIk1P8EAdyhJLOQKQ5pV7ldTj8aLeibxldRuvEW-Qdo/export?format=csv&v=2"; 
         
         let listaTrabajadores = [];
         let mesesDisponibles = []; 
@@ -288,11 +291,17 @@
                    valLimpio.includes("[");
         }
 
+        // Nueva función buscarPropiedad mucho más agresiva y a prueba de errores de digitación
         function buscarPropiedad(objeto, nombreColumna) {
-            const target = nombreColumna.toLowerCase().replace(/\s+/g, '').trim();
+            const target = nombreColumna.toLowerCase().replace(/[\s_.-]/g, '').trim();
             for (let clave in objeto) {
-                if (clave.toLowerCase().replace(/\s+/g, '').trim() === target) {
-                    return objeto[clave];
+                let claveLimpia = clave.toLowerCase().replace(/[\s_.-]/g, '').trim();
+                if (claveLimpia === target) {
+                    let valor = objeto[clave];
+                    if (valor === undefined || valor === null || String(valor).trim() === "") {
+                        return null; 
+                    }
+                    return valor;
                 }
             }
             return null;
@@ -542,6 +551,9 @@
                     case "plazo_fijo_sueldo_cargo":
                         showVigencia = true; showSueldo = true; showCargo = true;
                         break;
+                    case "plazo_fijo_sueldo_horario":
+                        showVigencia = true; showSueldo = true; showHorario = true;
+                        break;
                     case "indefinido":
                         showVigencia = true; isIndefinido = true; showSueldo = true;
                         break;
@@ -553,6 +565,9 @@
                         break;
                     case "indefinido_sueldo_cargo":
                         showVigencia = true; isIndefinido = true; showSueldo = true; showCargo = true;
+                        break;
+                    case "indefinido_sueldo_horario":
+                        showVigencia = true; isIndefinido = true; showSueldo = true; showHorario = true;
                         break;
                     case "comisiones":
                         isComisiones = true; showSueldo = true;
@@ -632,8 +647,10 @@
                         tipoAnexo === "cargo_sueldo" || 
                         tipoAnexo === "plazo_fijo_sueldo" || 
                         tipoAnexo === "plazo_fijo_sueldo_cargo" || 
+                        tipoAnexo === "plazo_fijo_sueldo_horario" || 
                         tipoAnexo === "indefinido_sueldo" || 
-                        tipoAnexo === "indefinido_sueldo_cargo") {
+                        tipoAnexo === "indefinido_sueldo_cargo" || 
+                        tipoAnexo === "indefinido_sueldo_horario") {
                         
                         // CAMBIO EXPLÍCITO DE SUELDO
                         if (tipoAnexo.includes("plazo_fijo")) {
@@ -719,8 +736,8 @@
 
                 // 5. PROCESAMIENTO DE VIGENCIA Y FECHAS
                 const usaNuevaFecha = [
-                    "plazo_fijo_sueldo", "plazo_fijo_cargo", "plazo_fijo_sueldo_cargo", 
-                    "indefinido_sueldo", "indefinido_cargo", "indefinido_sueldo_cargo", 
+                    "plazo_fijo_sueldo", "plazo_fijo_cargo", "plazo_fijo_sueldo_cargo", "plazo_fijo_sueldo_horario", 
+                    "indefinido_sueldo", "indefinido_cargo", "indefinido_sueldo_cargo", "indefinido_sueldo_horario",
                     "cargo", "sueldo", "cargo_sueldo", "horario"
                 ].includes(tipoAnexo);
 
