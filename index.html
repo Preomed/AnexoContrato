@@ -73,7 +73,7 @@
         }
     </style>
 </head>
-<body style="display: none;">
+<body>
 
     <div class="controles">
         <label for="selector-mes"><strong>Mes Ingreso:</strong></label>
@@ -892,31 +892,6 @@
                 document.title = "Anexo Contrato de Trabajo Dinámico - Preomed";
             }
         }
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMimbWHOrplArchHjZrheLZlLSIxj1-Hk",
-            authDomain: "preomed-salud---portal-interno.firebaseapp.com",
-            projectId: "preomed-salud---portal-interno",
-            storageBucket: "preomed-salud---portal-interno.firebasestorage.app",
-            messagingSenderId: "292608840627",
-            appId: "1:292608840627:web:0ac4afdaa71ba8baa8b1c6"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.body.style.display = "block";
-            } else {
-                window.location.replace("../index.html");
-            }
-        });
     </script>
 </body>
 </html>
