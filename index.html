@@ -336,12 +336,13 @@
             return null;
         }
 
-        // --- FUNCION MAGICA PARA ENLACES DE DRIVE ---
+        // --- FUNCION MAGICA PARA ENLACES DE DRIVE (ACTUALIZADA PARA THUMBNAIL) ---
         function obtenerUrlDirectaDrive(url) {
             if (!url) return "";
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
-                return "https://drive.google.com/uc?id=" + match[1];
+                // Usamos el endpoint de "thumbnail" de Google que sí permite incrustar imágenes en webs
+                return "https://drive.google.com/thumbnail?id=" + match[1] + "&sz=w800";
             }
             return url;
         }
@@ -809,111 +810,4 @@
 
                 asignarTextoSeguro("dato-nombres", nombres || "[Nombres]");
                 asignarTextoSeguro("dato-paterno", paterno || "[Apellido Paterno]");
-                asignarTextoSeguro("dato-materno", materno || "[Apellido Materno]");
-                asignarTextoSeguro("dato-rut", rutFormateado);
-                asignarTextoSeguro("dato-rut-firma", rutFormateado);
-                asignarTextoSeguro("dato-sb-indefinido", sbIndefinidoFormat || "[SBIndefinido]");
-                asignarTextoSeguro("dato-inicio-anexo", inicioAnexoFormat);
-                asignarTextoSeguro("dato-inicio-anexo-intro", inicioAnexoFormat);
-                asignarTextoSeguro("dato-centro-costo-intro", centroCostoCiudad);
-                asignarTextoSeguro("dato-cargo-anexo", cargoRaw || "[Cargo]");
-                asignarTextoSeguro("dato-jornada-anexo", jornadaRaw);
-                asignarTextoSeguro("dato-tiempo-colacion-anexo", tiempoColacionRaw);
-                asignarTextoSeguro("dato-horario-anexo", horarioRaw);
-                
-                // Nombre del archivo dinámico para la impresión
-                let primerNombre = nombres.trim().split(" ")[0];
-                let fechaPuntos = "";
-                
-                if (fechaParaTitulo) {
-                    let dia = String(fechaParaTitulo.getDate()).padStart(2, '0');
-                    let mes = String(fechaParaTitulo.getMonth() + 1).padStart(2, '0');
-                    let anio = fechaParaTitulo.getFullYear();
-                    fechaPuntos = `${dia}.${mes}.${anio}`;
-                }
-                
-                if (primerNombre && paterno && fechaPuntos) {
-                    document.title = "Anexo Contrato de Trabajo - " + primerNombre + " " + paterno + " - " + fechaPuntos;
-                } else {
-                    document.title = "Anexo Contrato de Trabajo Dinámico - Preomed";
-                }
-                
-            } else {
-                // RESETEO DE ESTADOS SI NO HAY NADIE SELECCIONADO
-                const logoImg = document.getElementById("logo-documento");
-                if (logoImg) {
-                    logoImg.style.display = "none";
-                    logoImg.src = "";
-                }
-                
-                // Estado en blanco si no hay selección
-                if (textoPrimero) textoPrimero.innerHTML = '<u><strong>PRIMERO. -</strong></u> Las partes vienen en sustituir las siguientes cláusulas del contrato de trabajo, las que a continuación se detallan:';
-                if (contCargo) contCargo.style.display = "none";
-                if (contHorario) contHorario.style.display = "none";
-                if (contCuarta) contCuarta.style.display = "block";
-                if (liSueldo) liSueldo.style.display = "list-item";
-                if (liGratificacion) liGratificacion.style.display = "list-item";
-                if (liColacion) liColacion.style.display = "list-item";
-                if (liMovilizacion) liMovilizacion.style.display = "list-item";
-                if (liComisiones) liComisiones.style.display = "none";
-                if (contSexta) {
-                    contSexta.style.display = "block";
-                    contSexta.innerHTML = '<u><strong>SEXTO. - DE LA VIGENCIA:</strong></u> El presente contrato tendrá una duración hasta el día <strong><span class="variable" id="dato-termino-anexo1">[TerminoAnexo1]</span></strong>.';
-                }
-
-                asignarTextoSeguro("dato-nombre-empresa", "[nombreEmpresa]");
-                asignarTextoSeguro("dato-rut-empresa", "[rutEmpresa]");
-                asignarTextoSeguro("dato-rut-empresa-firma", "[rutEmpresa]");
-                asignarTextoSeguro("dato-nombre-representante", "[nombreRepresentante]");
-                asignarTextoSeguro("dato-rut-representante", "[rutRepresentante]");
-
-                asignarTextoSeguro("dato-comuna-empresa", "[centrocostos]");
-                asignarTextoSeguro("dato-domicilio-empresa", "[domicilioEmpresa]");
-
-                asignarTextoSeguro("dato-nombres", "[Nombres]");
-                asignarTextoSeguro("dato-paterno", "[Apellido Paterno]");
-                asignarTextoSeguro("dato-materno", "[Apellido Materno]");
-                asignarTextoSeguro("dato-rut", "[RUT]");
-                asignarTextoSeguro("dato-rut-firma", "[RUT]");
-                asignarTextoSeguro("dato-sb-indefinido", "[SBIndefinido]");
-                asignarTextoSeguro("dato-inicio-anexo", "[Fecha Anexo]");
-                asignarTextoSeguro("dato-inicio-anexo-intro", "[Fecha Anexo]");
-                asignarTextoSeguro("dato-centro-costo-intro", "[Centro de Costo]");
-                asignarTextoSeguro("dato-colacion", "[Colación]");
-                asignarTextoSeguro("dato-movilizacion", "[Movilización]");
-                asignarTextoSeguro("dato-cargo-anexo", "[Cargo]");
-                asignarTextoSeguro("dato-jornada-anexo", "[Jornada]");
-                asignarTextoSeguro("dato-tiempo-colacion-anexo", "[Tiempo Colación]");
-                asignarTextoSeguro("dato-horario-anexo", "[Horario]");
-                
-                document.title = "Anexo Contrato de Trabajo Dinámico - Preomed";
-            }
-        }
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMimbWHOrplArchHjZrheLZlLSIxj1-Hk",
-            authDomain: "preomed-salud---portal-interno.firebaseapp.com",
-            projectId: "preomed-salud---portal-interno",
-            storageBucket: "preomed-salud---portal-interno.firebasestorage.app",
-            messagingSenderId: "292608840627",
-            appId: "1:292608840627:web:0ac4afdaa71ba8baa8b1c6"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.body.style.display = "block";
-            } else {
-                window.location.replace("../index.html");
-            }
-        });
-    </script>
-</body>
-</html>
+                asignarTextoSeguro("dato-materno", materno
