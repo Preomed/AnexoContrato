@@ -127,7 +127,7 @@
                     <td>
                         <h1>ANEXO CONTRATO DE TRABAJO</h1>
 
-                        <p>En <span class="variable" id="dato-centro-costo-intro">[Centro de Costo]</span>, a <strong><span class="variable" id="dato-inicio-anexo-intro">[Fecha Anexo]</span></strong>, entre la sociedad <strong><span class="variable" id="dato-nombre-empresa">[nombreEmpresa]</span></strong>, Rut. <strong><span class="variable" id="dato-rut-empresa">[rutEmpresa]</span></strong>, representada legalmente por Don/ña <strong><span class="variable" id="dato-nombre-representante">[nombreRepresentante]</span></strong>, Rut. <strong><span class="variable" id="dato-rut-representante">[rutRepresentante]</span></strong>, ambos con domicilio comercial en la ciudad de Antofagasta, calle Las Bandurrias n° 9078, en lo sucesivo el empleador, y Don/ña <strong><span class="variable" id="dato-nombres">[Nombres]</span> <span class="variable" id="dato-paterno">[Apellido Paterno]</span> <span class="variable" id="dato-materno">[Apellido Materno]</span></strong>, Rut. <strong><span class="variable" id="dato-rut">[RUT]</span></strong>, en adelante, el/la trabajador/a, se ha convenido actualizar el contrato de trabajo suscrito entre las partes, estableciendo las siguientes cláusulas:</p>
+                        <p>En <span class="variable" id="dato-centro-costo-intro">[Centro de Costo]</span>, a <strong><span class="variable" id="dato-inicio-anexo-intro">[Fecha Anexo]</span></strong>, entre la sociedad <strong><span class="variable" id="dato-nombre-empresa">[nombreEmpresa]</span></strong>, Rut. <strong><span class="variable" id="dato-rut-empresa">[rutEmpresa]</span></strong>, representada legalmente por Don/ña <strong><span class="variable" id="dato-nombre-representante">[nombreRepresentante]</span></strong>, Rut. <strong><span class="variable" id="dato-rut-representante">[rutRepresentante]</span></strong>, ambos con domicilio comercial en la ciudad de <span class="variable" id="dato-comuna-empresa">[centrocostos]</span>, <span class="variable" id="dato-domicilio-empresa">[domicilioEmpresa]</span>, en lo sucesivo el empleador, y Don/ña <strong><span class="variable" id="dato-nombres">[Nombres]</span> <span class="variable" id="dato-paterno">[Apellido Paterno]</span> <span class="variable" id="dato-materno">[Apellido Materno]</span></strong>, Rut. <strong><span class="variable" id="dato-rut">[RUT]</span></strong>, en adelante, el/la trabajador/a, se ha convenido actualizar el contrato de trabajo suscrito entre las partes, estableciendo las siguientes cláusulas:</p>
 
                         <p class="nueva-clausula sin-sangria" id="texto-primero"><u><strong>PRIMERO. -</strong></u> Las partes vienen en sustituir las siguientes cláusulas del contrato de trabajo, las que a continuación se detallan:</p>
 
@@ -577,6 +577,9 @@
                 const nombreRepresentante = buscarPropiedad(datos, "nombrerepresentante") || buscarPropiedad(datos, "representante") || "[nombreRepresentante]";
                 const rutRepresentante = buscarPropiedad(datos, "rutrepresentante") || "[rutRepresentante]";
 
+                const comunaEmpresa = buscarPropiedad(datos, "comuna") || buscarPropiedad(datos, "ciudad") || "[centrocostos]";
+                const domicilioEmpresa = buscarPropiedad(datos, "domicilioempresa") || buscarPropiedad(datos, "direccionempresa") || "[domicilioEmpresa]";
+
                 const nombres = buscarPropiedad(datos, "nombres") || buscarPropiedad(datos, "nombre") || "";
                 const paterno = buscarPropiedad(datos, "apellidopaterno") || "";
                 const materno = buscarPropiedad(datos, "apellidomaterno") || "";
@@ -784,6 +787,9 @@
                 asignarTextoSeguro("dato-nombre-representante", nombreRepresentante);
                 asignarTextoSeguro("dato-rut-representante", rutRepresentanteFormat);
 
+                asignarTextoSeguro("dato-comuna-empresa", comunaEmpresa);
+                asignarTextoSeguro("dato-domicilio-empresa", domicilioEmpresa);
+
                 asignarTextoSeguro("dato-nombres", nombres || "[Nombres]");
                 asignarTextoSeguro("dato-paterno", paterno || "[Apellido Paterno]");
                 asignarTextoSeguro("dato-materno", materno || "[Apellido Materno]");
@@ -843,6 +849,9 @@
                 asignarTextoSeguro("dato-rut-empresa-firma", "[rutEmpresa]");
                 asignarTextoSeguro("dato-nombre-representante", "[nombreRepresentante]");
                 asignarTextoSeguro("dato-rut-representante", "[rutRepresentante]");
+
+                asignarTextoSeguro("dato-comuna-empresa", "[centrocostos]");
+                asignarTextoSeguro("dato-domicilio-empresa", "[domicilioEmpresa]");
 
                 asignarTextoSeguro("dato-nombres", "[Nombres]");
                 asignarTextoSeguro("dato-paterno", "[Apellido Paterno]");
