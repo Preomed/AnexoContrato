@@ -79,6 +79,11 @@
             <option value="">Cargando...</option>
         </select>
 
+        <label for="selector-empresa"><strong>Empresa:</strong></label>
+        <select id="selector-empresa" onchange="actualizarListaTrabajadores()">
+            <option value="Todas">Cargando...</option>
+        </select>
+
         <label for="selector-trabajador"><strong>Trabajador:</strong></label>
         <select id="selector-trabajador" onchange="actualizarContrato()">
             <option value="">-- Seleccione --</option>
@@ -181,7 +186,7 @@
                                 </div>
 
                                 <strong>4. Fórmula de cálculo</strong><br>
-                                La commission se calcula sobre el 100% de las ventas totales, multiplicando por los tres factores definidos: (%Base por meta, % por actividades y % por clientes nuevos).<br><br>
+                                La comisión se calcula sobre el 100% de las ventas totales, multiplicando por los tres factores definidos: (%Base por meta, % por actividades y % por clientes nuevos).<br><br>
 
                                 <strong>5. Política de Pago</strong><br>
                                 Las comisiones se pagan con 1 mes de desfase (ejemplo: ventas de enero &rarr; pago en febrero).<br><br>
@@ -247,11 +252,11 @@
     </div>
 
     <script>
-        // Enlace de Google Sheet actualizado a la base de datos de Contrato de Trabajo
         const urlGoogleSheet = "https://docs.google.com/spreadsheets/d/1UIk1P8EAdyhJLOQKQ5pV7ldTj8aLeibxldRuvEW-Qdo/export?format=csv"; 
         
         let listaTrabajadores = [];
         let mesesDisponibles = []; 
+        let empresasDisponibles = []; 
 
         Papa.parse(urlGoogleSheet, {
             download: true,
@@ -263,6 +268,7 @@
                     alert("La base de datos se leyó correctamente, pero está vacía.");
                     return;
                 }
+                procesarEmpresas();
                 procesarMeses(); 
             },
             error: function() {
@@ -331,6 +337,32 @@
             return url;
         }
 
+        function procesarEmpresas() {
+            let mapaEmpresas = new Set();
+            
+            listaTrabajadores.forEach((trabajador) => {
+                let emp = buscarPropiedad(trabajador, "nombreempresa") || buscarPropiedad(trabajador, "empresa");
+                if (emp && emp.trim() !== "") {
+                    mapaEmpresas.add(emp.trim());
+                    trabajador._empresaKey = emp.trim();
+                } else {
+                    trabajador._empresaKey = "Desconocida";
+                }
+            });
+
+            empresasDisponibles = Array.from(mapaEmpresas).sort();
+
+            const selectorEmpresa = document.getElementById("selector-empresa");
+            selectorEmpresa.innerHTML = '<option value="Todas">Todas las empresas</option>';
+            
+            empresasDisponibles.forEach(emp => {
+                let op = document.createElement("option");
+                op.value = emp;
+                op.text = emp;
+                selectorEmpresa.appendChild(op);
+            });
+        }
+
         function procesarMeses() {
             let mapaMeses = {};
             
@@ -380,13 +412,17 @@
 
         function actualizarListaTrabajadores() {
             const mesSeleccionado = document.getElementById("selector-mes").value;
+            const empresaSeleccionada = document.getElementById("selector-empresa").value;
             const selectorTrabajador = document.getElementById("selector-trabajador");
             
             selectorTrabajador.innerHTML = '<option value="">-- Seleccione un trabajador --</option>';
             const primeraColumna = Object.keys(listaTrabajadores[0])[0];
 
             listaTrabajadores.forEach((trabajador, index) => {
-                if (mesSeleccionado === "Todos" || trabajador._mesKey === mesSeleccionado) {
+                const coincideMes = (mesSeleccionado === "Todos" || trabajador._mesKey === mesSeleccionado);
+                const coincideEmpresa = (empresaSeleccionada === "Todas" || trabajador._empresaKey === empresaSeleccionada);
+
+                if (coincideMes && coincideEmpresa) {
                     let nom = buscarPropiedad(trabajador, "nombres") || buscarPropiedad(trabajador, "nombre") || "";
                     let pat = buscarPropiedad(trabajador, "apellidopaterno") || "";
                     let mat = buscarPropiedad(trabajador, "apellidomaterno") || "";
