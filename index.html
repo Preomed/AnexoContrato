@@ -13,7 +13,7 @@
         body { font-family: 'Aptos Display', Calibri, Arial, sans-serif; font-size: 9pt; line-height: 1.5; color: #000; max-width: 800px; margin: 20px auto; padding: 20px; background-color: #f9f9f9; }
         .controles { background: #e9ecef; padding: 20px; margin-bottom: 20px; border-radius: 8px; text-align: center; font-family: 'Aptos Display', Arial, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; font-size: 12pt; }
         .controles label { font-size: 14px; margin-left: 10px; }
-        select, button { padding: 10px; font-size: 14px; font-family: inherit; border-radius: 5px; border: 1px solid #ccc; }
+        select, button, input[type="date"] { padding: 10px; font-size: 14px; font-family: inherit; border-radius: 5px; border: 1px solid #ccc; }
         button { background-color: #007bff; color: white; border: none; cursor: pointer; margin-left: 15px; }
         button:hover { background-color: #0056b3; }
         .contenedor-carta { background-color: #fff; padding: 40px; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: justify; }
@@ -21,11 +21,9 @@
         thead { display: table-header-group; }
         tfoot { display: table-footer-group; }
         
-        /* Ajuste del tamaño del logo */
         .encabezado-repetido { text-align: left; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid #ddd; height: 60px; }
         .logo-empresa { max-height: 60px; width: auto; }
         
-        /* Ajuste base del pie de página */
         .pie-pagina-contenido { text-align: center; font-weight: bold; font-size: 10pt; color: #555; padding-top: 15px; width: 100%; }
         
         h1 { font-size: 11pt; text-decoration: underline; text-align: center; margin-bottom: 30px; margin-top: 10px; }
@@ -44,7 +42,7 @@
         @media print {
             @page { 
                 size: letter; 
-                margin: 0.75cm 1.5cm 0.75cm 2cm; /* Arriba, Derecha, Abajo, Izquierda */
+                margin: 0.75cm 1.5cm 0.75cm 2cm;
                 @bottom-right { 
                     content: "Página " counter(page) " de " counter(pages); 
                     font-family: 'Aptos Display', Calibri, sans-serif; 
@@ -57,7 +55,6 @@
             .controles { display: none !important; }
             .variable { background-color: transparent; font-weight: inherit; }
 
-            /* Fijamos el pie de página justo al borde del margen inferior */
             .pie-pagina-contenido {
                 position: fixed;
                 bottom: 0; 
@@ -66,7 +63,6 @@
                 padding-top: 0;
                 margin: 0;
             }
-            /* Dejamos un espacio fantasma al final de la tabla para que el texto de la firma no choque con el pie de página */
             tfoot td {
                 height: 1.2cm;
             }
@@ -107,9 +103,19 @@
             <option value="cargo">Cargo</option>
             <option value="sueldo">Sueldo</option>
             <option value="cargo_sueldo">Cargo + Sueldo</option>
+            <option value="cargo_sueldo_horario">Cargo + Sueldo + Horario</option>
             <option value="horario">Horario</option>
             <option value="comisiones">Comisiones</option>
         </select>
+
+        <label style="background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #ccc; cursor: pointer;">
+            <input type="checkbox" id="check-provisorio" onchange="toggleProvisorio()"> <strong>Anexo Provisorio</strong>
+        </label>
+
+        <span id="cont-fecha-termino" style="display: none;">
+            <label for="fecha-termino-provisorio"><strong>Fecha Término:</strong></label>
+            <input type="date" id="fecha-termino-provisorio" onchange="actualizarContrato()">
+        </span>
 
         <button onclick="window.print()">Imprimir PDF</button>
     </div>
@@ -217,7 +223,7 @@
 
                         <p class="nueva-clausula sin-sangria"><u><strong>SEGUNDO. -</strong></u> Se deja constancia que lo estipulado en el presente anexo de contrato, sustituye y deja sin efecto todo anexo de contrato anterior.</p>
 
-                        <p class="nueva-clausula sin-sangria"><u><strong>TERCERO. -</strong></u> El presente anexo de contrato regirá a partir del <strong><span class="variable" id="dato-inicio-anexo">[Fecha Anexo]</span></strong>.-</p>
+                        <p class="nueva-clausula sin-sangria" id="clausula-tercero"><u><strong>TERCERO. -</strong></u> El presente anexo de contrato regirá a partir del <strong><span class="variable" id="dato-inicio-anexo">[Fecha Anexo]</span></strong>.-</p>
 
                         <p class="nueva-clausula sin-sangria"><u><strong>CUARTO. -</strong></u> Previa lectura, el presente anexo de contrato se firma en 2 ejemplares, declarando el trabajador haber recibido un ejemplar de él y que este es fiel reflejo de la relación laboral existente entre las partes.</p>
 
@@ -256,7 +262,6 @@
     </div>
 
     <script>
-        // Enlace de Google Sheet con &v=2 para evadir caché
         const urlGoogleSheet = "https://docs.google.com/spreadsheets/d/1UIk1P8EAdyhJLOQKQ5pV7ldTj8aLeibxldRuvEW-Qdo/export?format=csv&v=2"; 
         
         let listaTrabajadores = [];
@@ -293,7 +298,6 @@
                    valLimpio.includes("[");
         }
 
-        // Nueva función buscarPropiedad mucho más agresiva y a prueba de errores de digitación
         function buscarPropiedad(objeto, nombreColumna) {
             const target = nombreColumna.toLowerCase().replace(/[\s_.-]/g, '').trim();
             for (let clave in objeto) {
@@ -338,12 +342,10 @@
             return null;
         }
 
-        // --- FUNCION MAGICA PARA ENLACES DE DRIVE (ACTUALIZADA PARA THUMBNAIL) ---
         function obtenerUrlDirectaDrive(url) {
             if (!url) return "";
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
             if (match && match[1]) {
-                // Usamos el endpoint de "thumbnail" de Google que sí permite incrustar imágenes en webs
                 return "https://drive.google.com/thumbnail?id=" + match[1] + "&sz=w800";
             }
             return url;
@@ -499,6 +501,13 @@
             return fechaStr; 
         }
 
+        // FUNCIÓN PARA MOSTRAR/OCULTAR FECHA DE ANEXO PROVISORIO
+        function toggleProvisorio() {
+            const check = document.getElementById("check-provisorio").checked;
+            document.getElementById("cont-fecha-termino").style.display = check ? "inline-block" : "none";
+            actualizarContrato();
+        }
+
         function actualizarContrato() {
             const index = document.getElementById("selector-trabajador").value;
             
@@ -507,6 +516,7 @@
             const contHorario = document.getElementById("contenedor-clausula-horario");
             const contCuarta = document.getElementById("contenedor-clausula-cuarta");
             const contSexta = document.getElementById("contenedor-clausula-sexta");
+            const clausulaTercero = document.getElementById("clausula-tercero");
             const textoPrimero = document.getElementById("texto-primero");
             const liSueldo = document.getElementById("li-sueldo");
             const liGratificacion = document.getElementById("li-gratificacion");
@@ -515,10 +525,13 @@
             const liComisiones = document.getElementById("li-comisiones");
             const tipoAnexo = document.getElementById("selector-motivo").value;
             
+            // Variable de anexo provisorio
+            const isProvisorio = document.getElementById("check-provisorio").checked;
+            const fechaTerminoProv = document.getElementById("fecha-termino-provisorio").value;
+
             if (index !== "") {
                 const datos = listaTrabajadores[index];
                 
-                // --- CONTROL DINÁMICO DEL LOGO DESDE LA BASE DE DATOS ---
                 const urlLogoRaw = buscarPropiedad(datos, "urllogo") || buscarPropiedad(datos, "logo");
                 const urlLogoDirecta = obtenerUrlDirectaDrive(urlLogoRaw);
 
@@ -584,12 +597,14 @@
                     case "cargo_sueldo":
                         showCargo = true; showSueldo = true;
                         break;
+                    case "cargo_sueldo_horario": // NUEVA CONDICIONAL
+                        showCargo = true; showSueldo = true; showHorario = true;
+                        break;
                     case "horario":
                         showHorario = true;
                         break;
                 }
 
-                // 2. EXTRACCIÓN DE DATOS BASE
                 const nombreEmpresa = buscarPropiedad(datos, "nombreempresa") || buscarPropiedad(datos, "empresa") || "[nombreEmpresa]";
                 const rutEmpresa = buscarPropiedad(datos, "rutempresa") || "[rutEmpresa]";
                 const nombreRepresentante = buscarPropiedad(datos, "nombrerepresentante") || buscarPropiedad(datos, "representante") || "[nombreRepresentante]";
@@ -608,7 +623,6 @@
                 const terminoAnexo1Raw = buscarPropiedad(datos, "terminoanexo1") || buscarPropiedad(datos, "termino_anexo1") || "";
                 const inicioContratoRaw = buscarPropiedad(datos, "iniciocontrato") || buscarPropiedad(datos, "inicio_contrato") || "";
 
-                // EXTRACCIÓN DE NUEVA FECHA
                 const nuevaFechaRaw = buscarPropiedad(datos, "nuevafecha") || buscarPropiedad(datos, "nueva_fecha") || "";
                 let nuevaFechaFormat = "[Nueva Fecha]";
                 let nuevaFechaObj = null;
@@ -620,14 +634,10 @@
                     }
                 }
 
-                // 3. EXTRACCIÓN DE DATOS SEGÚN NUEVA LÓGICA ESPECÍFICA
-                
-                // Cargo
                 const cargoRaw = showCargo ? 
                     (buscarPropiedad(datos, "nuevocargo") || "[Nuevo Cargo]") : 
                     (buscarPropiedad(datos, "cargo") || "[Cargo]");
 
-                // Horario, Jornada y Tiempo de Colación (con Respaldo si es vacío o "0")
                 let nuevaJornadaVal = buscarPropiedad(datos, "nuevajornada");
                 let jornadaOriginal = buscarPropiedad(datos, "jornada");
                 const jornadaRaw = showHorario ? ((esDatoVacio(nuevaJornadaVal) || String(nuevaJornadaVal).trim() === "0") ? (jornadaOriginal || "[Jornada]") : nuevaJornadaVal) : (jornadaOriginal || "[Jornada]");
@@ -640,7 +650,6 @@
                 let horarioOriginal = buscarPropiedad(datos, "horario");
                 const horarioRaw = showHorario ? ((esDatoVacio(nuevoHorarioVal) || String(nuevoHorarioVal).trim() === "0") ? (horarioOriginal || "[Horario]") : nuevoHorarioVal) : (horarioOriginal || "[Horario]");
                 
-                // Inicialización de contenedores de dinero
                 let sbIndefinidoRaw = "[SBIndefinido]";
                 let colacionRaw = "0";
                 let movilizacionRaw = "0";
@@ -648,6 +657,7 @@
                 if (showSueldo) {
                     if (tipoAnexo === "sueldo" || 
                         tipoAnexo === "cargo_sueldo" || 
+                        tipoAnexo === "cargo_sueldo_horario" || 
                         tipoAnexo === "plazo_fijo_sueldo" || 
                         tipoAnexo === "plazo_fijo_sueldo_cargo" || 
                         tipoAnexo === "plazo_fijo_sueldo_horario" || 
@@ -657,11 +667,9 @@
                         tipoAnexo === "indefinido_sueldo_cargo" || 
                         tipoAnexo === "indefinido_sueldo_horario") {
                         
-                        // CAMBIO EXPLÍCITO DE SUELDO O PASO A INDEFINIDO
                         if (tipoAnexo.includes("plazo_fijo")) {
                             sbIndefinidoRaw = buscarPropiedad(datos, "nuevosbfijo") || "[Nuevo SB Fijo]";
                         } else if (tipoAnexo.includes("indefinido")) {
-                            // Prioriza la columna "nuevo sueldo indefinido" cuando se solicita la variante indefinido
                             sbIndefinidoRaw = buscarPropiedad(datos, "nuevosbindefinido") || buscarPropiedad(datos, "nuevosbfijo") || "[Nuevo SB Indefinido]";
                         } else {
                             sbIndefinidoRaw = buscarPropiedad(datos, "nuevosbindefinido") || buscarPropiedad(datos, "nuevosbfijo") || "[Nuevo SB]";
@@ -670,7 +678,6 @@
                         colacionRaw = buscarPropiedad(datos, "nuevocolacion") || buscarPropiedad(datos, "nuevocolación") || "0";
                         movilizacionRaw = buscarPropiedad(datos, "nuevomovilizacion") || buscarPropiedad(datos, "nuevomovilización") || "0";
                     } else {
-                        // MANTIENE REMUNERACIÓN ACTUAL
                         sbIndefinidoRaw = buscarPropiedad(datos, "sbindefinido") || "[SBIndefinido]";
                         colacionRaw = buscarPropiedad(datos, "colacion") || buscarPropiedad(datos, "colación") || "0";
                         movilizacionRaw = buscarPropiedad(datos, "movilizacion") || buscarPropiedad(datos, "movilización") || "0";
@@ -681,7 +688,6 @@
                     movilizacionRaw = buscarPropiedad(datos, "movilizacion") || buscarPropiedad(datos, "movilización") || "0";
                 }
 
-                // Procesamiento del centro de costo
                 let centroCostoCiudad = centroCosto;
                 if (centroCosto !== "[Centro de Costo]") {
                     let ccLower = centroCosto.trim().toLowerCase();
@@ -690,10 +696,8 @@
                     }
                 }
 
-                // Formateo de datos
                 const rutEmpresaFormat = formatearRut(rutEmpresa) || "[rutEmpresa]";
                 const rutRepresentanteFormat = formatearRut(rutRepresentante) || "[rutRepresentante]";
-
                 const rutFormateado = formatearRut(rutRaw) || "[RUT]";
                 const terminoAnexo1Format = formatearFecha(terminoAnexo1Raw, false) || "[TerminoAnexo1]";
                 const sbIndefinidoFormat = formatearDineroConSigno(sbIndefinidoRaw);
@@ -703,13 +707,11 @@
                 let inicioAnexoFormat = "";
                 let fechaParaTitulo = null;
 
-                // 4. RENDERIZADO DE BLOQUES PRINCIPALES
                 if (contCargo) contCargo.style.display = showCargo ? "block" : "none";
                 if (contHorario) contHorario.style.display = showHorario ? "block" : "none";
                 if (contCuarta) contCuarta.style.display = showSueldo ? "block" : "none";
                 if (contSexta) contSexta.style.display = showVigencia ? "block" : "none";
 
-                // Procesamiento interno de Remuneraciones
                 if (showSueldo) {
                     if (isComisiones) {
                         if (textoPrimero) textoPrimero.innerHTML = '<u><strong>PRIMERO. -</strong></u> Las partes vienen a complementar las siguientes cláusulas del contrato de trabajo, las que a continuación se detallan:';
@@ -740,11 +742,11 @@
                     }
                 }
 
-                // 5. PROCESAMIENTO DE VIGENCIA Y FECHAS
+                // INCLUYE LA NUEVA CONDICION EN usaNuevaFecha
                 const usaNuevaFecha = [
                     "plazo_fijo_sueldo", "plazo_fijo_cargo", "plazo_fijo_sueldo_cargo", "plazo_fijo_sueldo_horario", 
                     "indefinido_sueldo", "indefinido_cargo", "indefinido_sueldo_cargo", "indefinido_sueldo_horario",
-                    "cargo", "sueldo", "cargo_sueldo", "horario"
+                    "cargo", "sueldo", "cargo_sueldo", "cargo_sueldo_horario", "horario"
                 ].includes(tipoAnexo);
 
                 if (showVigencia) {
@@ -787,7 +789,6 @@
                         }
                     }
                 } else if (usaNuevaFecha) {
-                    // Para modificaciones que NO cambian la vigencia (ej: "Solo Cargo" o "Horario")
                     inicioAnexoFormat = nuevaFechaFormat;
                     fechaParaTitulo = nuevaFechaObj;
                 } else if (isComisiones) {
@@ -803,7 +804,42 @@
                     inicioAnexoFormat = "[Fecha Anexo]"; 
                 }
 
-                // Inyectar variables al DOM
+                // ---------------- LOGICA ANEXO PROVISORIO ----------------
+                if (isProvisorio) {
+                    if (fechaTerminoProv) {
+                        let fechaTerminoObj = new Date(fechaTerminoProv + 'T00:00:00'); 
+                        let inicioBase = nuevaFechaObj || (fechaParaTitulo || new Date());
+                        
+                        let mesesDiff = (fechaTerminoObj.getFullYear() - inicioBase.getFullYear()) * 12;
+                        mesesDiff -= inicioBase.getMonth();
+                        mesesDiff += fechaTerminoObj.getMonth();
+                        
+                        if (fechaTerminoObj.getDate() < inicioBase.getDate()) {
+                            mesesDiff--;
+                        }
+                        mesesDiff = mesesDiff < 1 ? 1 : mesesDiff; 
+                        
+                        const numLetras = ["cero", "un", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce"];
+                        let textoMeses = numLetras[mesesDiff] || mesesDiff;
+                        
+                        let fechaSiguienteObj = new Date(fechaTerminoObj);
+                        fechaSiguienteObj.setDate(fechaSiguienteObj.getDate() + 1);
+                        
+                        const frm = { day: '2-digit', month: 'long', year: 'numeric' };
+                        let stInicio = inicioBase.toLocaleDateString('es-ES', frm);
+                        let stTermino = fechaTerminoObj.toLocaleDateString('es-ES', frm);
+                        let stSiguiente = fechaSiguienteObj.toLocaleDateString('es-ES', frm);
+                        
+                        clausulaTercero.innerHTML = `<u><strong>TERCERO. -</strong></u> Las partes dejan expresa constancia y acuerdan que las modificaciones estipuladas en el presente anexo, relativas al nuevo cargo, remuneración y jornada de trabajo, tendrán un carácter estrictamente transitorio y temporal.<br><br>Dicha transitoriedad se extenderá por un período de ${mesesDiff} (${textoMeses}) meses, rigiendo de manera excepcional desde el ${stInicio} hasta el ${stTermino}.<br><br>Se acuerda expresamente que, a contar del ${stSiguiente}, el/la trabajador/a cesará en estas funciones transitorias y retomará de pleno derecho su cargo, jornada laboral y estructura de remuneraciones que mantenía vigentes con anterioridad a la suscripción de este anexo, sin que ello constituya menoscabo alguno.`;
+                    } else {
+                        clausulaTercero.innerHTML = `<u><strong>TERCERO. -</strong></u> <em>(Por favor seleccione la fecha de término del anexo provisorio)</em>`;
+                    }
+                } else {
+                    clausulaTercero.innerHTML = `<u><strong>TERCERO. -</strong></u> El presente anexo de contrato regirá a partir del <strong><span class="variable" id="dato-inicio-anexo"></span></strong>.-`;
+                    setTimeout(() => asignarTextoSeguro("dato-inicio-anexo", inicioAnexoFormat), 0);
+                }
+                // --------------------------------------------------------
+
                 asignarTextoSeguro("dato-nombre-empresa", nombreEmpresa);
                 asignarTextoSeguro("dato-rut-empresa", rutEmpresaFormat);
                 asignarTextoSeguro("dato-rut-empresa-firma", rutEmpresaFormat);
@@ -819,7 +855,6 @@
                 asignarTextoSeguro("dato-rut", rutFormateado);
                 asignarTextoSeguro("dato-rut-firma", rutFormateado);
                 asignarTextoSeguro("dato-sb-indefinido", sbIndefinidoFormat || "[SBIndefinido]");
-                asignarTextoSeguro("dato-inicio-anexo", inicioAnexoFormat);
                 asignarTextoSeguro("dato-inicio-anexo-intro", inicioAnexoFormat);
                 asignarTextoSeguro("dato-centro-costo-intro", centroCostoCiudad);
                 asignarTextoSeguro("dato-cargo-anexo", cargoRaw || "[Cargo]");
@@ -827,7 +862,6 @@
                 asignarTextoSeguro("dato-tiempo-colacion-anexo", tiempoColacionRaw);
                 asignarTextoSeguro("dato-horario-anexo", horarioRaw);
                 
-                // Nombre del archivo dinámico para la impresión
                 let primerNombre = nombres.trim().split(" ")[0];
                 let fechaPuntos = "";
                 
@@ -845,14 +879,12 @@
                 }
                 
             } else {
-                // RESETEO DE ESTADOS SI NO HAY NADIE SELECCIONADO
                 const logoImg = document.getElementById("logo-documento");
                 if (logoImg) {
                     logoImg.style.display = "none";
                     logoImg.src = "";
                 }
                 
-                // Estado en blanco si no hay selección
                 if (textoPrimero) textoPrimero.innerHTML = '<u><strong>PRIMERO. -</strong></u> Las partes vienen en sustituir las siguientes cláusulas del contrato de trabajo, las que a continuación se detallan:';
                 if (contCargo) contCargo.style.display = "none";
                 if (contHorario) contHorario.style.display = "none";
@@ -866,6 +898,8 @@
                     contSexta.style.display = "block";
                     contSexta.innerHTML = '<u><strong>SEXTO. - DE LA VIGENCIA:</strong></u> El presente contrato tendrá una duración hasta el día <strong><span class="variable" id="dato-termino-anexo1">[TerminoAnexo1]</span></strong>.';
                 }
+                
+                clausulaTercero.innerHTML = `<u><strong>TERCERO. -</strong></u> El presente anexo de contrato regirá a partir del <strong><span class="variable" id="dato-inicio-anexo">[Fecha Anexo]</span></strong>.-`;
 
                 asignarTextoSeguro("dato-nombre-empresa", "[nombreEmpresa]");
                 asignarTextoSeguro("dato-rut-empresa", "[rutEmpresa]");
@@ -882,7 +916,6 @@
                 asignarTextoSeguro("dato-rut", "[RUT]");
                 asignarTextoSeguro("dato-rut-firma", "[RUT]");
                 asignarTextoSeguro("dato-sb-indefinido", "[SBIndefinido]");
-                asignarTextoSeguro("dato-inicio-anexo", "[Fecha Anexo]");
                 asignarTextoSeguro("dato-inicio-anexo-intro", "[Fecha Anexo]");
                 asignarTextoSeguro("dato-centro-costo-intro", "[Centro de Costo]");
                 asignarTextoSeguro("dato-colacion", "[Colación]");
